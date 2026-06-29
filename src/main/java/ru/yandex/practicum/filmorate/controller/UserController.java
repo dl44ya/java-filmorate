@@ -14,13 +14,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    private final static String EMAIL_ERROR = "Почта не может быть пустой и должно содержать @";
-    private final static String LOGIN_ERROR = "Логин не может быть пустым и содержать пробелы";
-    private final static String BIRTHDAY_ERROR = "Дата рождения не может быть в будущем";
-    private final static String ID_ERROR = "Id должен быть указан";
-    private final static String FIELDS_ERROR = "Ошибка в заполнении полей";
-    private final static String USER_NOT_FOUND_ERROR = "Пользователь не найден";
-    private final static String DUPLICATED_USER_ERROR = "Пользователь с такой почтой уже зарегестрирован";
+    private final String emailError = "Почта не может быть пустой и должно содержать @";
+    private final String loginError = "Логин не может быть пустым и содержать пробелы";
+    private final String birthdayError = "Дата рождения не может быть в будущем";
+    private final String idError = "Id должен быть указан";
+    private final String fieldsError = "Ошибка в заполнении полей";
+    private final String userNotFoundError = "Пользователь не найден";
+    private final String duplicatedUserError = "Пользователь с такой почтой уже зарегестрирован";
 
     private final Map<Long, User> users = new HashMap<>();
 
@@ -29,22 +29,22 @@ public class UserController {
         log.info("Создание нового пользователя");
         if (user.getEmail() == null || !user.getEmail().contains("@") || user.getEmail().isBlank()) {
             log.warn("Неверный формат почты");
-            throw new ValidationException(EMAIL_ERROR);
+            throw new ValidationException(emailError);
         }
         if (!users.values().stream()
                 .filter(value -> value.getEmail().equals(user.getEmail()))
                 .toList().isEmpty()) {
             log.warn("Пользователь уже существует");
-            throw new ValidationException(DUPLICATED_USER_ERROR);
+            throw new ValidationException(duplicatedUserError);
         }
         if (user.getLogin() == null || user.getLogin().contains(" ") || user.getLogin().isBlank()) {
             log.warn("Неверный формат логина");
-            throw new ValidationException(LOGIN_ERROR);
+            throw new ValidationException(loginError);
         }
         LocalDate now = LocalDate.now();
         if (user.getBirthday().isAfter(now)) {
             log.warn("Неверная дата рождения");
-            throw new ValidationException(BIRTHDAY_ERROR);
+            throw new ValidationException(birthdayError);
         }
         user.setId(getNextId());
         if (user.getName() == null || user.getName().isBlank()) {
@@ -69,7 +69,7 @@ public class UserController {
         log.info("Обновлене данных пользоваеля");
         if (newUser.getId() == null) {
             log.warn("ID не передан");
-            throw new ValidationException(ID_ERROR);
+            throw new ValidationException(idError);
         }
         LocalDate now = LocalDate.now();
         if (users.containsKey(newUser.getId())) {
@@ -77,7 +77,7 @@ public class UserController {
                     (newUser.getLogin() == null || newUser.getLogin().contains(" ")) ||
                     (newUser.getBirthday().isAfter(now))) {
                 log.warn("Ошибка заполнения полей");
-                throw new ValidationException(FIELDS_ERROR);
+                throw new ValidationException(fieldsError);
             }
             User oldUser = users.get(newUser.getId());
             oldUser.setEmail(newUser.getEmail());
@@ -92,7 +92,7 @@ public class UserController {
             return oldUser;
         }
         log.warn("Пользователь не найден");
-        throw new ValidationException(USER_NOT_FOUND_ERROR);
+        throw new ValidationException(userNotFoundError);
     }
 
     @GetMapping
