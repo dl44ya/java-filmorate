@@ -15,13 +15,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/films")
 public class FilmController {
-    private final static String NAME_ERROR = "Название не может быть пустым";
-    private final static String ID_ERROR = "Id должен быть указан";
-    private final static String DESCRIPTION_LENGTH_ERROR = "Mаксимальная длина описания — 200 символов";
-    private final static String RELEASE_DATE_ERROR = "Дата релза не может быть раньше 28 декабря 1895 года";
-    private final static String DURATION_ERROR = "Продолжительность фильма должна быть положительным числом";
-    private final static String FIELDS_ERROR = "Ошибка в заполнении полей";
-    private final static String FILM_NOT_FOUND_ERROR = "Фильм не найден";
+    private final String NAME_ERROR = "Название не может быть пустым";
+    private final String ID_ERROR = "Id должен быть указан";
+    private final String DESCRIPTION_LENGTH_ERROR = "Mаксимальная длина описания — 200 символов";
+    private final String RELEASE_DATE_ERROR = "Дата релза не может быть раньше 28 декабря 1895 года";
+    private final String DURATION_ERROR = "Продолжительность фильма должна быть положительным числом";
+    private final String FIELDS_ERROR = "Ошибка в заполнении полей";
+    private final String FILM_NOT_FOUND_ERROR = "Фильм не найден";
 
     private final Map<Long, Film> films = new HashMap<>();
 
