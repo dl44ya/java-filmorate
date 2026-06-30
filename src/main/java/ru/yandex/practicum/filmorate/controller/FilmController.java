@@ -1,7 +1,12 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
@@ -15,13 +20,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/films")
 public class FilmController {
-    private final String nameError = "Название не может быть пустым";
-    private final String idError = "Id должен быть указан";
-    private final String descriptionLengthError = "Mаксимальная длина описания — 200 символов";
-    private final String releaseDateError = "Дата релза не может быть раньше 28 декабря 1895 года";
-    private final String durationError = "Продолжительность фильма должна быть положительным числом";
-    private final String fieldsError = "Ошибка в заполнении полей";
-    private final String filmNotFoundError = "Фильм не найден";
+    private static final String NAME_ERROR = "Название не может быть пустым";
+    private static final String ID_ERROR = "Id должен быть указан";
+    private static final String DESCRIPTION_LENGTH_ERROR = "Mаксимальная длина описания — 200 символов";
+    private static final String RELEASE_DATE_ERROR = "Дата релза не может быть раньше 28 декабря 1895 года";
+    private static final String DURATION_ERROR = "Продолжительность фильма должна быть положительным числом";
+    private static final String FIELDS_ERROR = "Ошибка в заполнении полей";
+    private static final String FILM_NOT_FOUND_ERROR = "Фильм не найден";
 
     private final Map<Long, Film> films = new HashMap<>();
 
@@ -30,19 +35,19 @@ public class FilmController {
         log.info("Создание нового фильма");
         if (film.getName() == null || film.getName().isBlank()) {
             log.warn("Неверный формат названия");
-            throw new ValidationException(nameError);
+            throw new ValidationException(NAME_ERROR);
         }
         if (film.getDescription().length() > 200) {
             log.warn("Невреная длина описания");
-            throw new ValidationException(descriptionLengthError);
+            throw new ValidationException(DESCRIPTION_LENGTH_ERROR);
         }
         if (film.getReleaseDate().isBefore(LocalDate.of(1895, Month.DECEMBER, 28))) {
             log.warn("Неверная дата релиза");
-            throw new ValidationException(releaseDateError);
+            throw new ValidationException(RELEASE_DATE_ERROR);
         }
         if (film.getDuration() < 1) {
             log.warn("Неверная длина фильма");
-            throw new ValidationException(durationError);
+            throw new ValidationException(DURATION_ERROR);
         }
         film.setId(getNextId());
         films.put(film.getId(), film);
@@ -64,7 +69,7 @@ public class FilmController {
         log.info("Обновление данных фильма");
         if (newFilm.getId() == null) {
             log.warn("ID не передан");
-            throw new ValidationException(idError);
+            throw new ValidationException(ID_ERROR);
         }
         if (films.containsKey(newFilm.getId())) {
             if ((newFilm.getName() == null || newFilm.getName().isBlank() ||
@@ -72,7 +77,7 @@ public class FilmController {
                     (newFilm.getReleaseDate() == null || newFilm.getReleaseDate().isBefore(LocalDate.of(1895, Month.DECEMBER, 28))) ||
                     (newFilm.getDuration() == null || newFilm.getDuration() < 1))) {
                 log.warn("Ошибка заполнения полей");
-                throw new ValidationException(fieldsError);
+                throw new ValidationException(FIELDS_ERROR);
             }
             Film oldFilm = films.get(newFilm.getId());
             oldFilm.setName(newFilm.getName());
@@ -83,7 +88,7 @@ public class FilmController {
             return oldFilm;
         }
         log.warn("Фильм не найден");
-        throw new ValidationException(filmNotFoundError);
+        throw new ValidationException(FILM_NOT_FOUND_ERROR);
     }
 
     @GetMapping

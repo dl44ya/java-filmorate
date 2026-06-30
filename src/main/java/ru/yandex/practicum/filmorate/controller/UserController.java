@@ -1,7 +1,12 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -14,13 +19,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    private final String emailError = "Почта не может быть пустой и должно содержать @";
-    private final String loginError = "Логин не может быть пустым и содержать пробелы";
-    private final String birthdayError = "Дата рождения не может быть в будущем";
-    private final String idError = "Id должен быть указан";
-    private final String fieldsError = "Ошибка в заполнении полей";
-    private final String userNotFoundError = "Пользователь не найден";
-    private final String duplicatedUserError = "Пользователь с такой почтой уже зарегестрирован";
+    private static final String EMAIL_ERROR = "Почта не может быть пустой и должно содержать @";
+    private static final String LOGIN_ERROR = "Логин не может быть пустым и содержать пробелы";
+    private static final String BIRTHDAY_ERROR = "Дата рождения не может быть в будущем";
+    private static final String ID_ERROR = "Id должен быть указан";
+    private static final String FIELDS_ERROR = "Ошибка в заполнении полей";
+    private static final String USER_NOT_FOUND_ERROR = "Пользователь не найден";
+    private static final String DUPLICATED_USER_ERROR = "Пользователь с такой почтой уже зарегестрирован";
 
     private final Map<Long, User> users = new HashMap<>();
 
@@ -29,22 +34,22 @@ public class UserController {
         log.info("Создание нового пользователя");
         if (user.getEmail() == null || !user.getEmail().contains("@") || user.getEmail().isBlank()) {
             log.warn("Неверный формат почты");
-            throw new ValidationException(emailError);
+            throw new ValidationException(EMAIL_ERROR);
         }
         if (!users.values().stream()
                 .filter(value -> value.getEmail().equals(user.getEmail()))
                 .toList().isEmpty()) {
             log.warn("Пользователь уже существует");
-            throw new ValidationException(duplicatedUserError);
+            throw new ValidationException(DUPLICATED_USER_ERROR);
         }
         if (user.getLogin() == null || user.getLogin().contains(" ") || user.getLogin().isBlank()) {
             log.warn("Неверный формат логина");
-            throw new ValidationException(loginError);
+            throw new ValidationException(LOGIN_ERROR);
         }
         LocalDate now = LocalDate.now();
         if (user.getBirthday().isAfter(now)) {
             log.warn("Неверная дата рождения");
-            throw new ValidationException(birthdayError);
+            throw new ValidationException(BIRTHDAY_ERROR);
         }
         user.setId(getNextId());
         if (user.getName() == null || user.getName().isBlank()) {
@@ -67,9 +72,11 @@ public class UserController {
     @PutMapping
     public User update(@RequestBody User newUser) {
         log.info("Обновлене данных пользоваеля");
+        log.info("Получен id: " + newUser.getId());
+        log.info("Все id: " + users.keySet());
         if (newUser.getId() == null) {
             log.warn("ID не передан");
-            throw new ValidationException(idError);
+            throw new ValidationException(ID_ERROR);
         }
         LocalDate now = LocalDate.now();
         if (users.containsKey(newUser.getId())) {
@@ -77,7 +84,7 @@ public class UserController {
                     (newUser.getLogin() == null || newUser.getLogin().contains(" ")) ||
                     (newUser.getBirthday().isAfter(now))) {
                 log.warn("Ошибка заполнения полей");
-                throw new ValidationException(fieldsError);
+                throw new ValidationException(FIELDS_ERROR);
             }
             User oldUser = users.get(newUser.getId());
             oldUser.setEmail(newUser.getEmail());
@@ -92,7 +99,7 @@ public class UserController {
             return oldUser;
         }
         log.warn("Пользователь не найден");
-        throw new ValidationException(userNotFoundError);
+        throw new ValidationException(USER_NOT_FOUND_ERROR);
     }
 
     @GetMapping
