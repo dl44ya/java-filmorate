@@ -2,11 +2,11 @@ package ru.yandex.practicum.filmorate.exception;
 
 import lombok.Getter;
 
-public class ValidationException extends RuntimeException {
+public class NotFoundException extends RuntimeException {
     @Getter
     private final String parameter;
 
-    public ValidationException(String parameter, String message) {
+    public NotFoundException(String parameter, String message) {
         super(message);
         this.parameter = parameter;
     }

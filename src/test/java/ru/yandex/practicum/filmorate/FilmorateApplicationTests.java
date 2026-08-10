@@ -5,38 +5,49 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.controller.UserController;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.AssertionsKt.assertNotNull;
 
 @SpringBootTest
 class FilmorateApplicationTests {
-    private FilmController filmController;
-    private Film validFilm;
+    private UserStorage userStorage;
+    private UserService userService;
     private UserController userController;
     private User validUser;
 
+    private FilmStorage filmStorage;
+    private FilmService filmService;
+    private FilmController filmController;
+    private Film validFilm;
+
     @BeforeEach
     void setData() {
-        filmController = new FilmController();
-        validFilm = new Film();
-        validFilm.setName("Film");
-        validFilm.setDescription("Film description");
-        validFilm.setReleaseDate(LocalDate.of(1895, Month.DECEMBER, 28));
-        validFilm.setDuration(100L);
+        filmController = new FilmController(new FilmService(new InMemoryFilmStorage(), new InMemoryUserStorage()));
+        validFilm = new Film("Film",
+                "Film description",
+                LocalDate.of(1895, Month.DECEMBER, 28),
+                100L);
 
-        userController = new UserController();
-        validUser = new User();
-        validUser.setEmail("user@email.ru");
-        validUser.setLogin("user333");
-        validUser.setName("User User");
-        validUser.setBirthday(LocalDate.of(1980, Month.AUGUST, 1));
+        userController = new UserController(new UserService(new InMemoryUserStorage()));
+        validUser = new User("user@email.ru",
+                "user333",
+                "User User",
+                LocalDate.of(1980, Month.AUGUST, 1));
     }
 
     /// Film
@@ -100,12 +111,11 @@ class FilmorateApplicationTests {
     @Test
     void updateFilm_ShouldSucceed_AllFieldsWalid() {
         Film oldFilm = filmController.create(validFilm);
-        Film newFilm = new Film();
+        Film newFilm = new Film("Film 2",
+                "Film description 2",
+                LocalDate.of(1999, Month.DECEMBER, 28),
+                120L);
         newFilm.setId(oldFilm.getId());
-        newFilm.setName("Film 2");
-        newFilm.setDescription("Film description 2");
-        newFilm.setReleaseDate(LocalDate.of(1999, Month.DECEMBER, 28));
-        newFilm.setDuration(120L);
 
         Film result = filmController.update(newFilm);
 
@@ -118,11 +128,10 @@ class FilmorateApplicationTests {
 
     @Test
     void updateFilm_ShouldNotSucceed_InvalidID() {
-        Film newFilm = new Film();
-        newFilm.setName("Film 2");
-        newFilm.setDescription("Film description 2");
-        newFilm.setReleaseDate(LocalDate.of(1999, Month.DECEMBER, 28));
-        newFilm.setDuration(120L);
+        Film newFilm = new Film("Film 2",
+                "Film description 2",
+                LocalDate.of(1999, Month.DECEMBER, 28),
+                120L);
 
         ValidationException ex = assertThrows(ValidationException.class, () -> filmController.update(newFilm));
 
@@ -132,12 +141,11 @@ class FilmorateApplicationTests {
     @Test
     void updateFilm_ShouldNotSucceed_InvalidField() {
         Film oldFilm = filmController.create(validFilm);
-        Film newFilm = new Film();
+        Film newFilm = new Film("Film 2",
+                "Film description 2",
+                LocalDate.of(1999, Month.DECEMBER, 28),
+                -200L);
         newFilm.setId(oldFilm.getId());
-        newFilm.setName("Film 2");
-        newFilm.setDescription("Film description 2");
-        newFilm.setReleaseDate(LocalDate.of(1999, Month.DECEMBER, 28));
-        newFilm.setDuration(-200L);
 
         ValidationException ex = assertThrows(ValidationException.class, () -> filmController.update(newFilm));
 
@@ -149,14 +157,14 @@ class FilmorateApplicationTests {
     void createUser_ShouldSucceed_AllFieldsWalid() {
         assertDoesNotThrow(() -> userController.create(validUser));
 
-        userController = new UserController();
-        User newUser = userController.create(validUser);
+        userController = new UserController(new UserService(new InMemoryUserStorage()));
+        User createdUser = userController.create(validUser);
 
-        assertNotNull(newUser.getId());
-        assertEquals(newUser.getEmail(), validUser.getEmail());
-        assertEquals(newUser.getName(), validUser.getName());
-        assertEquals(newUser.getLogin(), validUser.getLogin());
-        assertEquals(newUser.getBirthday(), validUser.getBirthday());
+        assertNotNull(createdUser.getId());
+        assertEquals(createdUser.getEmail(), validUser.getEmail());
+        assertEquals(createdUser.getName(), validUser.getName());
+        assertEquals(createdUser.getLogin(), validUser.getLogin());
+        assertEquals(createdUser.getBirthday(), validUser.getBirthday());
     }
 
     @Test
@@ -249,12 +257,11 @@ class FilmorateApplicationTests {
     @Test
     void updateUser_ShouldSucceed_AllFieldsWalid() {
         User oldUser = userController.create(validUser);
-        User newUser = new User();
+        User newUser = new User("example2@email.ru",
+                "user222",
+                "User User2",
+                LocalDate.of(2020, Month.JULY, 1));
         newUser.setId(oldUser.getId());
-        newUser.setEmail("example2@email.ru");
-        newUser.setLogin("user222");
-        newUser.setName("User User2");
-        newUser.setBirthday(LocalDate.of(2020, Month.JULY, 1));
 
         User result = userController.update(newUser);
 
@@ -267,11 +274,10 @@ class FilmorateApplicationTests {
 
     @Test
     void updateUser_ShouldNotSucceed_InvalidID() {
-        User newUser = new User();
-        newUser.setEmail("example2@email.ru");
-        newUser.setLogin("user222");
-        newUser.setName("User User2");
-        newUser.setBirthday(LocalDate.of(2020, Month.JULY, 1));
+        User newUser = new User("example2@email.ru",
+                "user222",
+                "User User2",
+                LocalDate.of(2020, Month.JULY, 1));
 
         ValidationException ex = assertThrows(ValidationException.class, () -> userController.update(newUser));
 
@@ -281,12 +287,11 @@ class FilmorateApplicationTests {
     @Test
     void updateUser_ShouldNotSucceed_InvalidField() {
         User oldUser = userController.create(validUser);
-        User newUser = new User();
+        User newUser = new User("example2email.ru",
+                "user222",
+                "User User2",
+                LocalDate.of(2020, Month.JULY, 1));
         newUser.setId(oldUser.getId());
-        newUser.setEmail("example2.email.ru");
-        newUser.setLogin("user222");
-        newUser.setName("User User2");
-        newUser.setBirthday(LocalDate.of(2020, Month.JULY, 1));
 
         ValidationException ex = assertThrows(ValidationException.class, () -> userController.update(newUser));
 
@@ -296,14 +301,13 @@ class FilmorateApplicationTests {
     @Test
     void updateUser_ShouldNotSucceed_UserNotFound() {
         User oldUser = userController.create(validUser);
-        User newUser = new User();
+        User newUser = new User("example2@email.ru",
+                "user222",
+                "User User2",
+                LocalDate.of(2020, Month.JULY, 1));
         newUser.setId(oldUser.getId() + 1);
-        newUser.setEmail("example2@email.ru");
-        newUser.setLogin("user222");
-        newUser.setName("User User2");
-        newUser.setBirthday(LocalDate.of(2020, Month.JULY, 1));
 
-        ValidationException ex = assertThrows(ValidationException.class, () -> userController.update(newUser));
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> userController.update(newUser));
 
         assertEquals("Пользователь не найден", ex.getMessage());
     }
