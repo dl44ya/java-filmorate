@@ -11,10 +11,8 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -24,13 +22,9 @@ import static org.junit.jupiter.api.AssertionsKt.assertNotNull;
 
 @SpringBootTest
 class FilmorateApplicationTests {
-    private UserStorage userStorage;
-    private UserService userService;
     private UserController userController;
     private User validUser;
 
-    private FilmStorage filmStorage;
-    private FilmService filmService;
     private FilmController filmController;
     private Film validFilm;
 

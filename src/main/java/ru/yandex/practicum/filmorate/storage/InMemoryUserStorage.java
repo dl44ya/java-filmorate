@@ -55,15 +55,6 @@ public class InMemoryUserStorage implements UserStorage {
         return user;
     }
 
-    private long getNextId() {
-        long currentMaxId = users.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
-    }
-
     @Override
     public User update(User newUser) {
         if (newUser.getId() == null) {
@@ -103,5 +94,14 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public Optional<User> findUserById(Long userId) {
         return Optional.ofNullable(users.get(userId));
+    }
+
+    private long getNextId() {
+        long currentMaxId = users.keySet()
+                .stream()
+                .mapToLong(id -> id)
+                .max()
+                .orElse(0);
+        return ++currentMaxId;
     }
 }
